@@ -11,6 +11,7 @@ import java.util.HashMap;
 public class Solver {
     public static void main(String[] args) {
         // variables for computation
+        System.out.println("hello");
         final int BOARDSIZE = 6;
         String currBoard = "____________________________________";
         Position start = new Position(currBoard, "", null);
@@ -28,8 +29,8 @@ public class Solver {
             String typeString = scnr.next();
             String colorString = scnr.next();
             char isHor = scnr.next().charAt(0);
-            int posRow = scnr.nextInt();
-            int posCol = scnr.nextInt();
+            int posRow = scnr.nextInt() - 1;
+            int posCol = scnr.nextInt() - 1;
             // put vehicle in garage
             Vehicle newVehicle = new Vehicle(typeString, colorString, isHor);
             garage.put(newVehicle.getSymbol() + "", newVehicle);
@@ -37,13 +38,18 @@ public class Solver {
             start.addVehicle(newVehicle, posCol, posRow);
         }
         
-        // prepare for DFS
-        
+        // prepare for BFS
+        //System.out.println(start.getPosStr().substring(0, 6));
+        //System.out.println(start.getPosStr().substring(6, 12));
+        //System.out.println(start.getPosStr().substring(12, 18));
+        //System.out.println(start.getPosStr().substring(18, 24));
+        //System.out.println(start.getPosStr().substring(24, 30));
+        //System.out.println(start.getPosStr().substring(30, 36));
         ArrayDeque<Position> unchecked = new ArrayDeque();
         unchecked.add(start);
         visited.add(start.getPosStr());
         
-        // Run DFS
+        // Run BFS
         while (!unchecked.isEmpty())
         {
             // set up iteration
@@ -72,13 +78,13 @@ public class Solver {
                     }
                     if (vehicleRep)
                     {
-                        ArrayDeque<Position> newMoves = spawnMoves(currBoard, garage.get(currBoard.charAt(i) + ""), i);
+                        ArrayDeque<Position> newMoves = spawnMoves(currPos, garage.get(currBoard.charAt(i) + ""), i);
                         while(!newMoves.isEmpty())
                         {
                             Position prospectiveMove = newMoves.remove();
                             if (!visited.contains(prospectiveMove.getPosStr()))
                             {
-                                if (false/* TODO: check if solved */)
+                                if (prospectiveMove.getPosStr().indexOf("AA") == 16)
                                 {
                                     // print results
                                     prospectiveMove.printMoves(0);
@@ -86,6 +92,7 @@ public class Solver {
                                 }
                                 // add unused position to tree
                                 unchecked.add(prospectiveMove);
+                                visited.add(prospectiveMove.getPosStr());
                             }                            
                         }
                     }
@@ -96,10 +103,84 @@ public class Solver {
         System.out.println("No solution");
     }
     
-    private static ArrayDeque<Position> spawnMoves(String boardString, Vehicle movingCar, int posIndex)
+    private static ArrayDeque<Position> spawnMoves(Position pos, Vehicle movingCar, int posIndex)
     {
         ArrayDeque<Position> moves = new ArrayDeque<>();
+        String boardString = pos.getPosStr();
+        int length = movingCar.getLen();
+        String color = movingCar.getColor();
+        char symbol = movingCar.getSymbol();
+        int locPos = 0;
+        
         // TODO: Return an ArrayDeque of all posible positions returned from moving the specified car with the proper moveString
+        if (movingCar.isHor())
+        {
+            // find way to reduce code multiples
+            for (int i = 1; (posIndex - i) % 6 != 5; i++)
+            {
+                locPos = posIndex - i;
+                if (locPos < 0) break;
+                if (boardString.charAt(locPos) != '_') break;
+                
+                char[] board = boardString.toCharArray();
+                for (int j = 0; j < length; j++)
+                {
+                    board[posIndex + j] = '_';
+                    board[locPos + j] = symbol;
+                }
+                
+                moves.add(new Position(new String(board), (color + " " + i + " L"), pos));
+            }
+            
+            for (int i = 0; (posIndex + i + length) % 6 != 0; i++)
+            {
+                locPos = posIndex + i + length;
+                if (locPos >= 36) break;
+                if (boardString.charAt(locPos) != '_') break;
+
+                char[] board = boardString.toCharArray();
+                for (int j = 0; j < length; j++)
+                {
+                    board[posIndex - j - 1 + length] = '_';
+                    board[locPos - j] = symbol;
+                }
+                
+                moves.add(new Position(new String(board), (color + " " + (i + 1) + " R"), pos));
+            }
+        }
+        else
+        {
+           for (int i = 1; (posIndex - (i * 6)) >= 0; i++)
+            {
+                locPos = posIndex - (i * 6);
+                if (boardString.charAt(locPos) != '_') break;
+                
+                char[] board = boardString.toCharArray();
+                for (int j = 0; j < length; j++)
+                {
+                    board[posIndex + (j * 6)] = '_';
+                    board[locPos + (j * 6)] = symbol;
+                }
+                
+                moves.add(new Position(new String(board), (color + " " + i + " U"), pos));
+            }
+            
+            for (int i = 0; (posIndex + ((i + length) * 6)) < 36; i++)
+            {
+                locPos = posIndex + ((i + length) * 6);
+                if (boardString.charAt(locPos) != '_') break;
+
+                char[] board = boardString.toCharArray();
+                for (int j = 0; j < length; j++)
+                {
+                    board[posIndex - ((j + 1 - length) * 6)] = '_';
+                    board[locPos - (j * 6)] = symbol;
+                }
+                
+                moves.add(new Position(new String(board), (color + " " + (i + 1) + " D"), pos));
+            } 
+        }
+        
         return moves;
     }
 }

@@ -44,12 +44,32 @@ public class Position {
         }
         else
         {
-            System.out.println(moveCount + " moves:");
+            if (moveCount == 1) System.out.println(moveCount + " move");
+            else System.out.println(moveCount + " moves");
         }
     }
     
     public void addVehicle(Vehicle added, int posCol, int posRow)
     {
-        //TODO: update posString to include the symbols of the added vehicle in the right position 
+        //TODO: update posString to include the symbols of the added vehicle in the right position
+        
+        // add protection against wraparound and poorly placed vehicles
+        char[] board = posString.toCharArray();
+        int index = (posRow * 6) + posCol;
+        posString = "";
+        
+        for (int i = 0; i < added.getLen(); i++)
+        {
+            if (added.isHor())
+            {
+                board[index + i] = added.getSymbol();
+            }
+            else
+            {
+                board[index + (i * 6)] = added.getSymbol();
+            }
+        }
+        
+        posString = new String(board);
     }
 }

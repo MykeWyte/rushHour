@@ -20,11 +20,11 @@ public class Vehicle {
     public Vehicle(String type, String newColor, char isHor)
     {
         // set len based on type
-        if (type == "car")
+        if ("car".equals(type))
         {
             len = 2;
         }
-        else if (type == "truck")
+        else if ("truck".equals(type))
         {
             len = 3;
         }
@@ -36,7 +36,7 @@ public class Vehicle {
         color = newColor;
         
         // automatically assign characters to associate with colors
-        if (color == "red")
+        if ("red".equals(color))
         {
             symbol = 'A';
         }
